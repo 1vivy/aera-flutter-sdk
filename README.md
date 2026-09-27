@@ -2,8 +2,8 @@
 
 Rust crate (`aera-sdk`) exposing what a Flutter app running on AERA Recovery's
 generic pixel + GPU plugin host can reach: recovery language, private and
-shared storage, device basics, speaker audio, and whether the app runs in the
-opt-in privileged mode.
+shared storage, device basics and speaker audio. Apps run as root with
+recovery's own access, like every generic plugin.
 
 > **The host is not released yet.** Paths and sockets the host will hand out
 > are assumed (marked `ASSUMED` in the source) and will change to match it.

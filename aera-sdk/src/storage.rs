@@ -1,8 +1,9 @@
 //! Where an app can keep files.
 //!
 //! ASSUMED: the pixel host names a private persistent directory in
-//! `AERA_PLUGIN_DATA` and the shared downloads folder in `AERA_DOWNLOADS_DIR`.
-//! A privileged app can also reach `/sdcard/AERA/Downloads` directly. Outside
+//! `AERA_PLUGIN_DATA` and may name the shared downloads folder in
+//! `AERA_DOWNLOADS_DIR`; otherwise the app, running as root, uses
+//! `/sdcard/AERA/Downloads` directly. Outside
 //! AERA (on a PC, under the simulator) the same calls return folders under
 //! `$XDG_DATA_HOME/aera-flutter` so apps behave the same in development.
 
@@ -19,7 +20,7 @@ fn dev_root() -> PathBuf {
 fn from_host(variable: &str, fallback: Option<&str>, dev: &str) -> PathBuf {
     if crate::env::in_recovery() {
         let host = std::env::var_os(variable).map(PathBuf::from);
-        let direct = fallback.filter(|_| crate::env::privileged()).map(PathBuf::from);
+        let direct = fallback.map(PathBuf::from);
         if let Some(path) = host.into_iter().chain(direct).find(|p| p.is_dir()) {
             return path;
         }

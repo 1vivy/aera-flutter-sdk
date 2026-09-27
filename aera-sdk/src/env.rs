@@ -1,8 +1,10 @@
 //! The environment AERA starts the app in.
 //!
 //! The app targets AERA's generic pixel + GPU plugin host, which is not
-//! released yet. Host API 2 already sets `AERA_HOST_API`, `AERA_PLUGIN_ROOT`
-//! and `AERA_LOCALE`; the pixel host is assumed to keep them.
+//! released yet. Like every generic plugin it is a recovery module: root, in
+//! recovery's own filesystem, with recovery's access. Host API 2 already sets
+//! `AERA_HOST_API`, `AERA_PLUGIN_ROOT` and `AERA_LOCALE`; the pixel host is
+//! assumed to keep them.
 
 use std::path::{Path, PathBuf};
 
@@ -18,14 +20,6 @@ pub fn host_api() -> Option<u32> {
 /// the phone's GPU node.
 pub fn in_recovery() -> bool {
     host_api().is_some() && Path::new("/dev/kgsl-3d0").exists()
-}
-
-/// True when the app runs with recovery's own access (root, partitions,
-/// `/data`, `/sys`). ASSUMED: the pixel host jails apps by default and grants
-/// this only to apps that opt in with `"privileged": true` in `aera.json`,
-/// as Host API 2 plugins (which all run as root) do today.
-pub fn privileged() -> bool {
-    in_recovery() && unsafe { libc::geteuid() } == 0
 }
 
 /// Where AERA extracted the app's payload. Bundled resources live here.
