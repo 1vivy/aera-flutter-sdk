@@ -1,10 +1,11 @@
 //! Speaker output through AERA's audio bridge.
 //!
-//! AERA starts `aera-audio-bridge --browser-audio` next to the browser slot.
-//! It listens on the abstract Unix socket `aera-browser-audio-v1`, accepts a
-//! 16-byte hello (`"APRA"` magic, rate, channels, bits) and then raw
-//! little-endian PCM: 48 kHz, 2 channels, 16 bits. This is the same stream
-//! AERA Browser's GStreamer sink sends (`gst_aera_audio_sink.c`).
+//! AERA's `aera-audio-bridge` accepts a 16-byte hello (`"APRA"` magic, rate,
+//! channels, bits) and then raw little-endian PCM: 48 kHz, 2 channels, 16
+//! bits, on an abstract Unix socket. Today it only runs next to the browser
+//! slot. ASSUMED: the pixel host starts one for apps with the
+//! `audio-output` permission and names its abstract socket in
+//! `AERA_AUDIO_SOCKET`.
 
 use std::io::{self, Write};
 use std::os::fd::{FromRawFd, OwnedFd};
@@ -12,7 +13,7 @@ use std::os::unix::net::UnixStream;
 
 pub const SAMPLE_RATE: u32 = 48_000;
 pub const CHANNELS: u32 = 2;
-const SOCKET_NAME: &[u8] = b"aera-browser-audio-v1";
+const SOCKET_ENV: &str = "AERA_AUDIO_SOCKET";
 const HELLO: [u32; 4] = [0x4152_5041, SAMPLE_RATE, CHANNELS, 16];
 
 pub struct AudioOutput {
@@ -20,10 +21,14 @@ pub struct AudioOutput {
 }
 
 impl AudioOutput {
-    /// Connects to the bridge. Fails outside AERA, or when the bridge is not
-    /// running.
+    /// Connects to the bridge. Fails outside AERA, or when AERA started no
+    /// bridge for this app.
     pub fn connect() -> io::Result<AudioOutput> {
-        let stream = connect_abstract(SOCKET_NAME)?;
+        let name = std::env::var(SOCKET_ENV)
+            .ok()
+            .filter(|name| !name.is_empty() && name.len() < 100)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "AERA gave this app no audio bridge"))?;
+        let stream = connect_abstract(name.as_bytes())?;
         // Like AERA Browser, only talk to a root-owned endpoint.
         let mut peer: libc::ucred = unsafe { std::mem::zeroed() };
         let mut size = std::mem::size_of::<libc::ucred>() as libc::socklen_t;

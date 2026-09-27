@@ -3,7 +3,7 @@ name = "aera-sdk"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
-description = "What a Flutter app running inside AERA Recovery's browser slot can reach: environment, storage, device basics and speaker audio"
+description = "What a Flutter app running on AERA Recovery's generic pixel + GPU host can reach: environment, storage, device basics and speaker audio"
 
 [dependencies]
 libc = "0.2"

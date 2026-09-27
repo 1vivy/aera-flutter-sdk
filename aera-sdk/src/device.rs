@@ -1,6 +1,5 @@
-//! Device basics readable from inside the jail. `/proc` shows only the app's
-//! own processes and `/sys` is absent, so these come from system calls the
-//! jail allows.
+//! Device basics. These come from system calls rather than `/proc` or
+//! `/sys`, so they work whether or not the host jails the app.
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DeviceInfo {
