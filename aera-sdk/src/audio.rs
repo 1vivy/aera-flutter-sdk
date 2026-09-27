@@ -23,7 +23,18 @@ impl AudioOutput {
     /// Connects to the bridge. Fails outside AERA, or when the bridge is not
     /// running.
     pub fn connect() -> io::Result<AudioOutput> {
-        let stream = connect_abstract(SOCKET_NAME)?;
+        let stream = connect_abstract(SOCKET_NAME).map_err(|error| {
+            if error.kind() == io::ErrorKind::ConnectionRefused {
+                // AERA starts the bridge with the app; it exits when the
+                // phone's audio stack fails to start (aera-audio-bootstrap).
+                io::Error::new(
+                    io::ErrorKind::ConnectionRefused,
+                    "AERA's audio bridge is not running, so recovery has no speaker output right now",
+                )
+            } else {
+                error
+            }
+        })?;
         // Like AERA Browser, only talk to a root-owned endpoint.
         let mut peer: libc::ucred = unsafe { std::mem::zeroed() };
         let mut size = std::mem::size_of::<libc::ucred>() as libc::socklen_t;
