@@ -1,0 +1,19 @@
+name: surfaces_ui
+description: The shared look for surfaces apps. A theme that takes the host's Material You colours when it has them, spacing tokens, and widgets for host status and per-feature fallbacks.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  surfaces:
+    path: ../surfaces
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

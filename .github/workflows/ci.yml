@@ -1,16 +1,31 @@
 name: CI
 on: [push, pull_request]
 jobs:
-  test:
+  rust:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - run: rustup target add wasm32-unknown-unknown aarch64-unknown-linux-musl
       - run: cargo test
+      # The core must build for the web, the ops crate for Android workers.
+      - run: cargo build -p surfaces-core -p surfaces-ops --target wasm32-unknown-unknown
+      - run: cargo build -p surfaces-ops --target aarch64-unknown-linux-musl
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: rust-lld
   dart:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - aera_flutter
+          - packages/surfaces
+          - packages/surfaces_ui
+          - packages/surfaces_webui
+          - packages/surfaces_aera
     defaults:
       run:
-        working-directory: aera_flutter
+        working-directory: ${{ matrix.package }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -19,4 +34,18 @@ jobs:
           channel: stable
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test
+      - run: if [ -d test ]; then flutter test; fi
+  cli:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: tools/cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+      - run: dart pub get
+      - run: dart analyze
+      - run: dart test

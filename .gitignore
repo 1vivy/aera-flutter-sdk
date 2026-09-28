@@ -1,4 +1,4 @@
 /target
-aera_flutter/.dart_tool/
-aera_flutter/pubspec.lock
-aera_flutter/build/
+.dart_tool/
+pubspec.lock
+build/

@@ -1,0 +1,18 @@
+[package]
+name = "surfaces-ops"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Privileged or long work for surfaces apps: a Handler trait, built-in ops, an in-process runner and the worker binary protocol used over ksu.exec on WebUI."
+
+[dependencies]
+surfaces-core = { path = "../surfaces-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3"
