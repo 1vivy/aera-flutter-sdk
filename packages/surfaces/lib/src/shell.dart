@@ -23,9 +23,8 @@ class ExecResult {
   /// How long the command took, as the app saw it.
   final Duration? elapsed;
 
-  /// How long the host froze the page to run it (KernelSU, Next, SukiSU,
-  /// APatch and the standalone host run the command inside the JavaScript
-  /// call). Zero or null where commands run in the background.
+  /// How long the host froze the page to run it (the KernelSU WebUI bridge
+  /// runs the command inside the JavaScript call). Zero or null where commands run in the background.
   final Duration? blocked;
 
   bool get ok => code == 0;

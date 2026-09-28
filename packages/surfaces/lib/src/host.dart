@@ -38,8 +38,9 @@ class HostInfo {
   /// The host's name, such as `WebUI X Portable`, `KernelSU` or `AERA Recovery`.
   final String name;
 
-  /// The rung of the WebUI ladder (`webuix`, `kernelsu`, `next`, `apatch`,
-  /// `standalone`, `browser`), or the kind's name elsewhere.
+  /// On the web: `webuix` (WebUI X), `webui` (the KernelSU WebUI bridge,
+  /// whichever manager provides it) or `browser`. Elsewhere the kind's name.
+  /// What a host can do is in [capabilities], never inferred from this.
   final String tier;
 
   /// The host's version, when it tells.
@@ -56,14 +57,11 @@ class HostInfo {
 
   bool has(String capability) => capabilities.contains(capability);
 
-  /// The host's rank on the WebUI ladder, 5 (WebUI X) down to 0 (plain
-  /// browser); -1 off the web.
+  /// 2 for WebUI X, 1 for the KernelSU WebUI bridge, 0 for a plain
+  /// browser; -1 off the web.
   int get webTierRank => switch (tier) {
-    'webuix' => 5,
-    'kernelsu' => 4,
-    'next' => 3,
-    'apatch' => 2,
-    'standalone' => 1,
+    'webuix' => 2,
+    'webui' => 1,
     'browser' => 0,
     _ => -1,
   };

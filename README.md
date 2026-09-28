@@ -13,12 +13,12 @@ them.
 | Path | What it is |
 | --- | --- |
 | `packages/surfaces` | The API apps import: `Surface.instance` (window, navigation, lifecycle, storage, files, feedback, theme, packages, shell, ops, core), `SurfaceScope`, capabilities. Desktop and test fallback. |
-| `packages/surfaces_webui` | Web backend. Detects the WebUI ladder (WebUI X > KernelSU/SukiSU > Next > APatch > Standalone > plain browser) method by method; wraps `ksu.*`, `webui.*`, `$<module>.*`, WX events, host insets and Monet colours; loads the Rust core as plain wasm. |
+| `packages/surfaces_webui` | Web backend. Detects WebUI X, the KernelSU WebUI bridge (any manager) or a plain browser, and each optional bridge method one by one; wraps `ksu.*`, `webui.*`, `$<module>.*`, WX events, host insets and Monet colours; loads the Rust core as plain wasm. |
 | `packages/surfaces_aera` | AERA backend on `aera_flutter` (`AeraScope`, safe area, keyboard) with in-process ops and core. |
 | `packages/surfaces_ui` | Shared look: `SurfacesApp`, a theme that takes host colours, spacing tokens, `HostBanner`, `CapabilityRow`, `FallbackNote`. |
 | `crates/surfaces-core` | Pure Rust for every target: the ops protocol, shell quoting, WebUI naming rules, SHA-256, and the core ABI (`export_wasm_core!`). |
 | `crates/surfaces-ops` | `Handler` trait, built-in ops (`sys.info`, `fs.stat`, `fs.list`, `fs.hash`, `sys.wait`), an in-process job runner, and the worker binary protocol used over `ksu.exec`. |
-| `tools/cli` | `surfaces` dev CLI: `build webui|web|aera|linux|all`, `serve --host <tier>` (fake root manager in any browser), `sim` (AERA simulator), `doctor`. |
+| `tools/cli` | `surfaces` dev CLI: `build webui|web|aera|linux|all`, `serve --host webuix|webui|webui-min|browser` (fake bridge in any browser), `sim` (AERA simulator), `doctor`. |
 | `aera-sdk`, `aera_flutter` | AERA Recovery's Rust SDK and Flutter system package (unchanged). |
 
 ## The three abstractions
@@ -61,17 +61,23 @@ demo that exercises every affordance is
 
 ## Fallbacks by host
 
-| Feature | WebUI X | KernelSU / SukiSU | Next | APatch | Standalone | Browser | AERA |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Back | `WX_ON_BACK` → route pop | history → route pop | history | history | history | history | edge gesture |
-| Exit at root | `webui.exit()` | `ksu.exit()` | 2nd Back closes | 2nd Back closes | 2nd Back closes | – | AERA leaves |
-| Insets | CSS vars + `WX_ON_INSETS` | `insets.css` | `insets.css` | `insets.css` | none | none | `aera/system` |
-| Toast | host | host | host | host | host | in-app | in-app |
-| Commands | async | **blocks page** | blocks | blocks | blocks | none | `sh` if present |
-| Packages | `pm` via shell | `listPackages` + info | same | same | `pm` via shell | – | – |
-| Storage | root files | root files | root files | root files | root files | localStorage | `/profile` |
-| Ops | worker | worker | worker | worker | worker | – | in-process |
-| Core | wasm | wasm | wasm | wasm | wasm | wasm | FRB |
+There are two WebUI platforms: **WebUI X** and the **KernelSU WebUI**
+bridge (`window.ksu`), which KernelSU, SukiSU, KernelSU Next, APatch and
+KsuWebUIStandalone all provide. Managers differ only in which optional
+`ksu` methods they ship, so each feature below follows the method, not the
+manager.
+
+| Feature | WebUI X | KernelSU WebUI | Browser | AERA |
+| --- | --- | --- | --- | --- |
+| Back | `WX_ON_BACK` → route pop | history → route pop | history | edge gesture |
+| Exit at root | `webui.exit()` | `ksu.exit()` if present, else the host closes when history runs out | – | AERA leaves |
+| Insets | CSS vars + `WX_ON_INSETS` | `insets.css` with `enableEdgeToEdge`/`enableInsets`, else none | none | `aera/system` |
+| Toast | host | `ksu.toast` | in-app | in-app |
+| Commands | async | **blocks the page** | none | `sh` if present |
+| Packages | `pm` via shell | `listPackages` + `getPackagesInfo` if present, else `pm` | – | – |
+| Storage | root files | root files | localStorage | `/profile` |
+| Ops | worker | worker | – | in-process |
+| Core | wasm | wasm | wasm | FRB |
 
 ## aera-sdk (AERA Recovery)
 

@@ -157,10 +157,12 @@ class HostBanner extends StatelessWidget {
   };
 
   static String _tierLabel(HostInfo info) {
-    if (info.webTierRank >= 0) {
-      return 'WebUI tier ${info.webTierRank} of 5 (${info.tier})';
-    }
-    return info.tier;
+    return switch (info.tier) {
+      'webuix' => 'WebUI X',
+      'webui' => 'KernelSU WebUI',
+      'browser' => 'Plain browser',
+      final tier => tier,
+    };
   }
 }
 

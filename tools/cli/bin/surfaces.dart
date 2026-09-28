@@ -81,7 +81,7 @@ class ServeCommand extends Command<void> {
   ServeCommand() {
     argParser
       ..addOption('host', abbr: 't', allowed: tiers, defaultsTo: 'webuix',
-          help: 'Which root manager to pretend to be.')
+          help: 'Which bridge to fake: webuix, webui (every optional method), webui-min (bare), browser.')
       ..addOption('port', abbr: 'p', defaultsTo: '8080')
       ..addOption('dir', help: 'The webroot to serve (default: the last webui or web build).')
       ..addFlag('adb', help: 'Run commands on a rooted phone over adb instead of this PC.')
@@ -95,7 +95,7 @@ class ServeCommand extends Command<void> {
 
   @override
   String get description =>
-      'Serve the WebUI build in a browser as a KernelSU / WebUI X host would, at any tier of the ladder.';
+      'Serve the WebUI build in a browser as a KernelSU WebUI or WebUI X host would.';
 
   @override
   Future<void> run() async {

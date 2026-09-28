@@ -7,7 +7,9 @@ import 'package:path/path.dart' as p;
 import 'config.dart';
 import 'run.dart';
 
-const tiers = ['webuix', 'kernelsu', 'next', 'apatch', 'standalone', 'browser'];
+/// Bridge profiles `surfaces serve` can fake: WebUI X, the KernelSU WebUI
+/// bridge with every optional method, the bare bridge, and a plain browser.
+const tiers = ['webuix', 'webui', 'webui-min', 'browser'];
 
 /// Serves a web build the way a root manager's WebUI does, with a fake host
 /// bridge for [tier]. Commands run on this PC inside a sandboxed fake device
@@ -97,8 +99,8 @@ class DevServer {
   }
 
   bool get _ksuFamily => tier != 'browser';
-  bool get _insets => _ksuFamily && tier != 'standalone';
-  bool get _colors => tier == 'kernelsu' || tier == 'webuix' || tier == 'next';
+  bool get _insets => tier == 'webuix' || tier == 'webui';
+  bool get _colors => tier == 'webuix' || tier == 'webui';
 
   static const _insetsCss = ':root {\n'
       '  --safe-area-inset-top: 32px; --safe-area-inset-bottom: 24px;\n'

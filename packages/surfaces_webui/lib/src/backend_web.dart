@@ -12,19 +12,18 @@ import 'package:web/web.dart' as web;
 import 'bridge.dart';
 import 'wasm_core.dart';
 
-/// Recognises the WebUI ladder and plain browsers.
+/// Recognises the two WebUI platforms and plain browsers.
 ///
-/// | Tier | Host | How it is recognised |
+/// | Tier | Hosts | How it is recognised |
 /// | --- | --- | --- |
-/// | `webuix` | WebUI X (MMRL, WebUI X Portable) | `ksu.mmrl()` or `window.webui` |
-/// | `kernelsu` | KernelSU, SukiSU | `ksu.exit` and `ksu.enableEdgeToEdge` |
-/// | `next` | KernelSU Next | `ksu.enableInsets` and `ksu.moduleInfo`, or its file API |
-/// | `apatch` | APatch | `ksu.enableInsets` without `ksu.moduleInfo` |
-/// | `standalone` | KsuWebUIStandalone, older managers | only `exec`, `spawn`, `toast`, `fullScreen`, `moduleInfo` |
+/// | `webuix` | WebUI X (MMRL, WebUI X Portable, managers that bundle it) | `ksu.mmrl()` or `window.webui` |
+/// | `webui` | KernelSU WebUI: KernelSU, SukiSU, KernelSU Next, APatch, KsuWebUIStandalone | `window.ksu` |
 /// | `browser` | anything else | no `window.ksu` |
 ///
-/// Capabilities come from what each host really has, method by method, so
-/// a host that gains a method gains the feature.
+/// Managers differ only in which optional `ksu` methods they ship
+/// (`exit`, `enableEdgeToEdge`, `listPackages`, `getPackagesInfo`, ...).
+/// Capabilities come from those methods one by one, never from a manager's
+/// name, so a manager that gains a method gains the feature.
 class WebUiBackend extends SurfaceBackend {
   const WebUiBackend();
 
@@ -64,29 +63,15 @@ String _engine(String ua) {
   HostObject? webui,
   String ua,
 ) {
-  final webuix = RegExp(r'WebUI X/(\d+)').firstMatch(ua)?.group(1);
   if (ksu.has('mmrl') || webui != null) {
+    final portable = RegExp(r'WebUI X/(\d+)').firstMatch(ua)?.group(1);
     return (
       tier: 'webuix',
-      name: webuix != null ? 'WebUI X Portable' : 'WebUI X (MMRL)',
-      version: webuix ?? '',
+      name: portable != null ? 'WebUI X Portable' : 'WebUI X',
+      version: portable ?? '',
     );
   }
-  if (ksu.has('exit') && ksu.has('enableEdgeToEdge')) {
-    return (tier: 'kernelsu', name: 'KernelSU / SukiSU', version: '');
-  }
-  if (ksu.has('enableInsets') && !ksu.has('moduleInfo')) {
-    return (tier: 'apatch', name: 'APatch', version: '');
-  }
-  if ((ksu.has('enableInsets') && ksu.has('moduleInfo')) ||
-      ksu.has('listFile') ||
-      ksu.has('readFile')) {
-    return (tier: 'next', name: 'KernelSU Next', version: '');
-  }
-  if (!ksu.has('listPackages')) {
-    return (tier: 'standalone', name: 'KsuWebUIStandalone', version: '');
-  }
-  return (tier: 'kernelsu', name: 'KernelSU-compatible', version: '');
+  return (tier: 'webui', name: 'KSU WebUI', version: '');
 }
 
 Surface _browser(SurfaceConfig config, String ua, WasmCoreBinding? core) {
@@ -138,6 +123,7 @@ Future<Surface> _webui(
 
   // Turn on edge-to-edge so the insets mean something. Requesting
   // /internal/insets.css (index.html does) also does it on KernelSU.
+  final insets = webuix || ksu.has('enableEdgeToEdge') || ksu.has('enableInsets');
   if (ksu.has('enableEdgeToEdge')) {
     ksu.call('enableEdgeToEdge', [true.toJS]);
   } else if (ksu.has('enableInsets')) {
@@ -158,7 +144,6 @@ Future<Surface> _webui(
   final hasWorker = workerCheck.stdout.trim() == 'yes';
 
   final window = _WebWindow(ksu: ksu, module: module);
-  final insets = id.tier != 'standalone';
   window.start(liveCss: insets);
   final lifecycle = _WebLifecycle()..start();
   final navigation = _WebNavigation(ksu: ksu, webui: webui, window: window);

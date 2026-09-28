@@ -64,8 +64,8 @@ abstract final class Cap {
   /// Shell commands run (as root on WebUI hosts).
   static const shellExec = 'shell.exec';
 
-  /// Shell commands run without freezing the UI. Without it (KernelSU,
-  /// Next, SukiSU, APatch, the standalone host) every command blocks the page
+  /// Shell commands run without freezing the UI. Without it (the KernelSU
+  /// WebUI bridge, in every manager) every command blocks the page
   /// until it ends: keep them short and use ops jobs for anything long.
   static const shellExecAsync = 'shell.exec.async';
 

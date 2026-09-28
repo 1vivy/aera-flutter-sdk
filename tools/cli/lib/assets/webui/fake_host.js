@@ -1,10 +1,16 @@
 // A stand-in for a root manager's WebUI host, injected by `surfaces serve`.
-// It gives the page the same globals, quirks and gaps as the chosen tier, so
-// the app's per-feature fallbacks can be tried in any browser. Commands go
+// It gives the page the globals, quirks and gaps of one bridge profile, so
+// the app's per-feature fallbacks can be tried in any browser:
+//
+//   webuix     WebUI X: async exec, WX_* events, webui and $module globals
+//   webui      the KernelSU WebUI bridge with every optional method
+//              (exit, enableEdgeToEdge, listPackages, getPackagesInfo)
+//   webui-min  the bare bridge: exec, spawn, toast, fullScreen, moduleInfo
+//              (what the most minimal managers and apps ship) Commands go
 // to the dev server, which runs them on this PC (in a sandboxed fake device
 // root) or on a phone with --adb.
 //
-// Faithful quirks: on every tier except WebUI X, ksu.exec runs inside the
+// Faithful quirks: everywhere except WebUI X, ksu.exec runs inside the
 // call (a synchronous request), so the page freezes until the command ends,
 // exactly as KernelSU's @JavascriptInterface does. WebUI X runs it in the
 // background and posts WX_* events.
@@ -96,20 +102,9 @@
     moduleInfo: function () { return moduleInfo; }
   };
 
-  if (tier === 'kernelsu') {
+  if (tier === 'webui') {
     ksu.enableEdgeToEdge = function (on) { log('enableEdgeToEdge(' + on + ')'); };
     ksu.exit = function () { closed('ksu.exit()'); };
-  }
-  if (tier === 'next' || tier === 'apatch') {
-    ksu.enableInsets = function (on) { log('enableInsets(' + on + ')'); };
-  }
-  if (tier === 'next') {
-    ksu.listFile = function () { return '[]'; };
-  }
-  if (tier === 'apatch') {
-    delete ksu.moduleInfo;
-  }
-  if (tier === 'kernelsu' || tier === 'next' || tier === 'apatch') {
     ksu.listPackages = function (type) { return JSON.stringify(packages.map(function (p) { return p.packageName; })); };
     ksu.getPackagesInfo = function (json) {
       var wanted = JSON.parse(json);

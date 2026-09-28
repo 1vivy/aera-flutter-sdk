@@ -1,4 +1,4 @@
-// Loads a surfaces app in Chromium under each fake WebUI host tier (via
+// Loads a surfaces app in Chromium under each fake WebUI bridge profile (via
 // `surfaces serve`), with a phone-sized viewport, and records what happened:
 // a screenshot per step, console errors, and the host report the app
 // exposes through Flutter's semantics tree.
@@ -17,7 +17,7 @@ const args = process.argv.slice(2);
 const scriptIndex = args.indexOf('--script');
 const script = scriptIndex >= 0 ? require(path.resolve(args.splice(scriptIndex, 2)[1])) : null;
 const [appDir, outDir, ...tierArgs] = args;
-const tiers = tierArgs.length ? tierArgs : ['webuix', 'kernelsu', 'next', 'apatch', 'standalone', 'browser'];
+const tiers = tierArgs.length ? tierArgs : ['webuix', 'webui', 'webui-min', 'browser'];
 fs.mkdirSync(outDir, { recursive: true });
 
 function serve(tier, port) {
