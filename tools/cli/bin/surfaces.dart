@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:surfaces_cli/surfaces_cli.dart';
@@ -130,6 +131,10 @@ class ServeCommand extends Command<void> {
 }
 
 class SimCommand extends Command<void> {
+  // Everything after `sim` goes to aera-host-sim as is.
+  @override
+  final argParser = ArgParser.allowAnything();
+
   @override
   String get name => 'sim';
 
