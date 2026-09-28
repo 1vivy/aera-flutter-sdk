@@ -59,6 +59,15 @@ workspace (native bridge, core, worker) and `surfaces.yaml` in place. The
 demo that exercises every affordance is
 [aera-flutter-demo](https://github.com/1vivy/aera-flutter-demo).
 
+## What belongs here
+
+surfaces is the host layer only: detecting the host, the Dart services with
+their fallbacks, the core/ops protocol and worker plumbing, and the build
+CLI. Anything an app does (flashing, backups, its own backends such as
+fastboot vs `dd`) lives in that app's repo, in its own Rust workspace; the
+template shows where, and the demo shows how an app switches backends
+behind one op.
+
 ## Fallbacks by host
 
 There are two WebUI platforms: **WebUI X** and the **KernelSU WebUI**
