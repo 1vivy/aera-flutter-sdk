@@ -12,6 +12,13 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(AeraSystem.channel, (call) async {
           calls.add(call);
+          if (call.method == 'getState') {
+            return {
+              'keyboardVisible': false,
+              'padding': [0, 0, 0, 75.0],
+              'gestureInsets': [37.5, 0, 37.5, 60.0],
+            };
+          }
           return null;
         });
   });
@@ -35,6 +42,49 @@ void main() {
     navigator.currentState!.pop();
     await tester.pumpAndSettle();
     expect(calls.last.arguments, {'canGoBack': false});
+  });
+
+  testWidgets('safe area reaches MediaQuery', (tester) async {
+    late MediaQueryData seen;
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(devicePixelRatio: 3),
+        child: AeraScope(
+          child: Builder(
+            builder: (context) {
+              seen = MediaQuery.of(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(seen.padding, const EdgeInsets.only(bottom: 25));
+    expect(seen.viewPadding.bottom, 25);
+    expect(
+      seen.systemGestureInsets,
+      const EdgeInsets.fromLTRB(12.5, 0, 12.5, 20),
+    );
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          devicePixelRatio: 3,
+          viewInsets: EdgeInsets.only(bottom: 196),
+        ),
+        child: AeraScope(
+          child: Builder(
+            builder: (context) {
+              seen = MediaQuery.of(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    expect(seen.padding.bottom, 0);
+    expect(seen.viewPadding.bottom, 25);
   });
 
   test('top bar events and keyboard state reach the app', () async {

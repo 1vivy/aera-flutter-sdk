@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 
 /// AERA's top bar, back gesture and keyboard, as seen from the app.
@@ -32,6 +33,46 @@ class AeraSystem {
   /// ([MediaQueryData.viewInsets]) is the keyboard's height, so a [Scaffold]
   /// keeps the focused field above it, as on Android.
   final ValueNotifier<bool> keyboardVisible = ValueNotifier(false);
+
+  /// The part of the app, in physical pixels, that the screen's rounded
+  /// corners and AERA's swipe-up strip cover. [AeraScope] adds it to
+  /// [MediaQueryData.padding] and [MediaQueryData.viewPadding], so
+  /// [SafeArea], [Scaffold] and [NavigationBar] keep clear of it, as they do
+  /// of Android's system bars. Zero until [refreshState] hears from AERA.
+  final ValueNotifier<EdgeInsets> padding = ValueNotifier(EdgeInsets.zero);
+
+  /// Where AERA's own gestures (the back edges and the swipe-up strip) take
+  /// touches first, in physical pixels. [AeraScope] puts it in
+  /// [MediaQueryData.systemGestureInsets].
+  final ValueNotifier<EdgeInsets> gestureInsets = ValueNotifier(
+    EdgeInsets.zero,
+  );
+
+  /// Asks the embedder for [padding], [gestureInsets] and [keyboardVisible].
+  /// [AeraScope] calls it once when it starts.
+  Future<void> refreshState() async {
+    final Object? state;
+    try {
+      state = await channel.invokeMethod<Object?>('getState');
+    } on MissingPluginException {
+      return;
+    }
+    if (state is! Map) return;
+    padding.value = _insets(state['padding']) ?? padding.value;
+    gestureInsets.value =
+        _insets(state['gestureInsets']) ?? gestureInsets.value;
+    if (state['keyboardVisible'] is bool) {
+      keyboardVisible.value = state['keyboardVisible'] as bool;
+    }
+  }
+
+  static EdgeInsets? _insets(Object? value) {
+    if (value is! List || value.length != 4) return null;
+    final [left, top, right, bottom] = [
+      for (final v in value) (v as num).toDouble(),
+    ];
+    return EdgeInsets.fromLTRB(left, top, right, bottom);
+  }
 
   /// The top bar's Forward button. It is enabled while
   /// [setNavigationState] says the app can go forward.
