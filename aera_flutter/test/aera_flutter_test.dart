@@ -52,4 +52,27 @@ void main() {
     await AeraSystem.instance.setStatus(progress: 40);
     expect(calls.single.arguments, {'progress': 40});
   });
+
+  test('recovery calls decode the embedder\'s replies', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(AeraRecovery.channel, (call) async {
+          calls.add(call);
+          return switch (call.method) {
+            'getTheme' => {
+              'accent': 0x16c8ff,
+              'light': false,
+              'interfaceSize': 'normal',
+              'clock24': true,
+            },
+            'getBattery' => {'level': 87, 'temperatureC': 31.2},
+            _ => null,
+          };
+        });
+    final theme = await AeraRecovery.theme();
+    expect(theme.accent, const Color(0xff16c8ff));
+    expect(theme.brightness, Brightness.dark);
+    expect((await AeraRecovery.battery()).level, 87);
+    await AeraRecovery.reboot(RebootTarget.bootloader);
+    expect(calls.last.arguments, 'bootloader');
+  });
 }

@@ -13,5 +13,6 @@
 /// Everything else is on [AeraSystem.instance].
 library;
 
+export 'src/recovery.dart';
 export 'src/scope.dart';
 export 'src/system.dart';
