@@ -15,11 +15,12 @@
 //! | Private persistent storage (assumed) | `AERA_PLUGIN_DATA` | [`storage`] |
 //! | Shared downloads folder (assumed) | `AERA_DOWNLOADS_DIR`, `/sdcard/AERA/Downloads` | [`storage`] |
 //! | Scratch space | `TMPDIR` | [`storage`] |
-//! | Speaker output, 48 kHz stereo (assumed) | abstract socket named in `AERA_AUDIO_SOCKET` | [`audio`] |
+//! | Speaker output, 48 kHz stereo (assumed) | abstract socket named in `AERA_AUDIO_SOCKET` | [`audio`], [`speaker`] |
 //! | Network | recovery's Wi-Fi route | use `dart:io` or any Rust client |
 //! | Kernel, RAM, CPUs | `uname`, `sysinfo` | [`device`] |
 
 pub mod audio;
 pub mod device;
 pub mod env;
+pub mod speaker;
 pub mod storage;
