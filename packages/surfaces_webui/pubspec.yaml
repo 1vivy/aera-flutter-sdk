@@ -1,0 +1,20 @@
+name: surfaces_webui
+description: The web backend for package:surfaces. Detects the WebUI ladder (WebUI X, KernelSU and SukiSU, KernelSU Next, APatch, KsuWebUIStandalone) down to a plain browser and falls back per feature.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  surfaces:
+    path: ../surfaces
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

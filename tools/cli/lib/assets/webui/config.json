@@ -1,0 +1,9 @@
+{
+  "title": "@NAME@",
+  "backHandler": true,
+  "backInterceptor": "javascript",
+  "exitConfirm": false,
+  "pullToRefresh": false,
+  "windowResize": true,
+  "autoStatusBarsStyle": true
+}

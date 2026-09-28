@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["aera-sdk"]
+members = ["aera-sdk", "crates/surfaces-core", "crates/surfaces-ops"]
