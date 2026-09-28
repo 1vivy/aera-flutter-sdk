@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -105,12 +106,19 @@ Future<Map<String, String>> buildWorker(AppConfig app, Iterable<String> targets)
 }
 
 Future<String> _binaryName(AppConfig app, String crate) async {
-  // The worker crate's [[bin]] name, or the crate name.
-  final manifest = File(p.join(app.rustDir, crate, 'Cargo.toml'));
-  if (manifest.existsSync()) {
-    final match = RegExp(r'\[\[bin\]\][^\[]*?name\s*=\s*"([^"]+)"', dotAll: true)
-        .firstMatch(manifest.readAsStringSync());
-    if (match != null) return match.group(1)!;
+  // The worker crate's binary target, from Cargo itself.
+  final result = await Process.run(
+    'cargo', ['metadata', '--no-deps', '--format-version', '1'],
+    workingDirectory: app.rustDir,
+  );
+  if (result.exitCode == 0) {
+    final metadata = jsonDecode(result.stdout as String) as Map<String, Object?>;
+    for (final package in (metadata['packages'] as List).cast<Map<String, Object?>>()) {
+      if (package['name'] != crate) continue;
+      for (final target in (package['targets'] as List).cast<Map<String, Object?>>()) {
+        if ((target['kind'] as List).contains('bin')) return target['name'] as String;
+      }
+    }
   }
   return crate;
 }

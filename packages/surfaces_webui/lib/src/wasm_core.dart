@@ -61,12 +61,8 @@ class WasmCoreBinding implements CoreBinding {
     JSUint8Array(_buffer, pointer, input.length)
         .callMethod<JSAny?>('set'.toJS, input.toJS);
     // Returns a u64 (a JS BigInt): pointer << 32 | length.
-    final packed = BigInt.parse(
-      _exports
-          .callMethod<JSObject>(function.toJS, pointer.toJS, input.length.toJS)
-          .callMethod<JSString>('toString'.toJS)
-          .toDart,
-    );
+    final result = _exports.callMethod<JSAny>(function.toJS, pointer.toJS, input.length.toJS);
+    final packed = BigInt.parse(globalContext.callMethod<JSString>('String'.toJS, result).toDart);
     // The core copied the request; the input buffer is ours to free.
     _exports.callMethod<JSAny?>('surfaces_free'.toJS, pointer.toJS, input.length.toJS);
     final resultPointer = (packed >> 32).toInt();

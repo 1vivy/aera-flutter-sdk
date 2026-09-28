@@ -178,8 +178,12 @@ class DevServer {
       if (relative.contains('..')) relative = 'index.html';
       final file = File(p.join(webroot, relative));
       if (!file.existsSync()) {
-        // KernelSU answers a missing file with an empty 200; browsers 404.
+        // KernelSU answers a missing file with an empty 200 (typed by its
+        // extension); browsers 404.
         response.statusCode = _ksuFamily ? HttpStatus.ok : HttpStatus.notFound;
+        if (_ksuFamily) {
+          response.headers.set('content-type', _types[p.extension(relative)] ?? 'text/plain');
+        }
         return;
       }
       final type = _types[p.extension(file.path)] ?? 'application/octet-stream';

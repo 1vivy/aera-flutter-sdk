@@ -100,19 +100,15 @@ class ServeCommand extends Command<void> {
   Future<void> run() async {
     final args = argResults!;
     final app = _app();
-    String? worker;
     var webroot = args['dir'] as String?;
-    if (args['build'] as bool) {
-      webroot ??= await buildWeb(app, target: 'webui');
-      if (!(args['adb'] as bool)) worker = (await buildWorker(app, ['host']))['host'];
-    }
+    if (args['build'] as bool) webroot ??= await buildWeb(app, target: 'webui');
     webroot ??= [
       p.join(app.buildDir, 'webui', 'module', 'webroot'),
       p.join(app.buildDir, 'web'),
-    ].firstWhere((d) => Directory(d).existsSync(), orElse: () => throw UsageError('Nothing built yet; run surfaces build webui'));
-    worker ??= [
-      p.join(app.rustDir, 'target', 'release', app.workerCrate ?? ''),
-    ].where((f) => File(f).existsSync()).firstOrNull;
+    ].firstWhere((d) => Directory(d).existsSync(),
+        orElse: () => throw UsageError('Nothing built yet; run surfaces build webui'));
+    // The fake module's worker, built for this PC.
+    final worker = args['adb'] as bool ? null : (await buildWorker(app, ['host']))['host'];
     final server = DevServer(
       app: app,
       webroot: webroot,

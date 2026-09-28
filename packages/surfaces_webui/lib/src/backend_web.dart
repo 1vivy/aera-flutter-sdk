@@ -5,6 +5,7 @@ import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
+import 'package:flutter/semantics.dart';
 import 'package:surfaces/surfaces.dart';
 import 'package:web/web.dart' as web;
 
@@ -29,6 +30,11 @@ class WebUiBackend extends SurfaceBackend {
 
   @override
   Future<Surface?> tryCreate(SurfaceConfig config) async {
+    // `?semantics=1` turns Flutter's accessibility tree on from the start,
+    // for screen-reader users and for browser tests that read the page.
+    if (Uri.base.queryParameters['semantics'] == '1') {
+      SemanticsBinding.instance.ensureSemantics();
+    }
     final ksu = HostObject.find('ksu');
     final webui = HostObject.find('webui');
     final module = HostObject.find(_moduleGlobal(config.appId));
